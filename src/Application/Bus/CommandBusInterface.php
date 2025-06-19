@@ -22,4 +22,12 @@ interface CommandBusInterface
      * @return mixed
      */
     public function execute(object $command);
+    
+    /**
+     * Dispatch a command (alias for execute)
+     * 
+     * @param object $command
+     * @return mixed
+     */
+    public function dispatch(object $command);
 }

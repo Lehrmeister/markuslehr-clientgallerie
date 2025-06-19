@@ -336,6 +336,131 @@ class GalleryAdminPage
                 </form>
             </div>
         </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            // Edit Gallery
+            $('.edit-gallery').on('click', function() {
+                const galleryId = $(this).data('gallery-id');
+                // TODO: Open edit modal with gallery data
+                console.log('Edit gallery:', galleryId);
+                alert('Edit functionality will be implemented soon!');
+            });
+            
+            // Publish/Unpublish Gallery
+            $('.publish-gallery, .unpublish-gallery').on('click', function() {
+                const galleryId = $(this).data('gallery-id');
+                const action = $(this).data('action');
+                const $button = $(this);
+                
+                if (!confirm('Are you sure you want to ' + action + ' this gallery?')) {
+                    return;
+                }
+                
+                $button.prop('disabled', true);
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'mlcg_toggle_gallery_status',
+                        gallery_id: galleryId,
+                        status: action,
+                        nonce: '<?php echo wp_create_nonce('mlcg_admin_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload(); // Reload to show updated status
+                        } else {
+                            alert('Error: ' + response.data.message);
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred. Please try again.');
+                    },
+                    complete: function() {
+                        $button.prop('disabled', false);
+                    }
+                });
+            });
+            
+            // Delete Gallery
+            $('.delete-gallery').on('click', function() {
+                const galleryId = $(this).data('gallery-id');
+                const $button = $(this);
+                
+                if (!confirm('Are you sure you want to delete this gallery? This action cannot be undone.')) {
+                    return;
+                }
+                
+                $button.prop('disabled', true);
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'mlcg_delete_gallery',
+                        gallery_id: galleryId,
+                        nonce: '<?php echo wp_create_nonce('mlcg_admin_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('tr[data-gallery-id="' + galleryId + '"]').fadeOut(300, function() {
+                                $(this).remove();
+                            });
+                        } else {
+                            alert('Error: ' + response.data.message);
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred. Please try again.');
+                    },
+                    complete: function() {
+                        $button.prop('disabled', false);
+                    }
+                });
+            });
+        });
+        </script>
+        
+        <style>
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-draft {
+            background: #f0f0f1;
+            color: #646970;
+        }
+        
+        .status-published {
+            background: #d1e7dd;
+            color: #0a3622;
+        }
+        
+        .gallery-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .gallery-actions .button {
+            margin: 0;
+        }
+        
+        .button-link-delete {
+            color: #d63638 !important;
+        }
+        
+        .button-link-delete:hover {
+            color: #ffffff !important;
+            background: #d63638 !important;
+        }
+        </style>
         <?php
     }
 

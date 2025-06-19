@@ -8,6 +8,229 @@
  * @since 1.0.0
  */
 
+class MLCGAdmin {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        // Bind events
+        this.bindEvents();
+        
+        console.log('MLCG Admin initialized');
+    }
+
+    bindEvents() {
+        // Edit gallery
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('mlcg-edit')) {
+                e.preventDefault();
+                this.editGallery(e.target.dataset.id);
+            }
+        });
+
+        // Delete gallery
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('mlcg-delete')) {
+                e.preventDefault();
+                this.deleteGallery(e.target.dataset.id);
+            }
+        });
+
+        // Publish/Unpublish gallery
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('mlcg-publish')) {
+                e.preventDefault();
+                this.publishGallery(e.target.dataset.id);
+            }
+            if (e.target.classList.contains('mlcg-unpublish')) {
+                e.preventDefault();
+                this.unpublishGallery(e.target.dataset.id);
+            }
+        });
+
+        // New gallery form submission
+        const newGalleryForm = document.getElementById('mlcg-new-gallery-form');
+        if (newGalleryForm) {
+            newGalleryForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.createGallery();
+            });
+        }
+    }
+
+    async editGallery(galleryId) {
+        try {
+            console.log('Edit gallery:', galleryId);
+            alert('Edit functionality will be implemented next');
+        } catch (error) {
+            console.error('Error editing gallery:', error);
+            this.showNotice('Error editing gallery', 'error');
+        }
+    }
+
+    async deleteGallery(galleryId) {
+        if (!confirm(mlcgGallery.strings.confirmDelete)) {
+            return;
+        }
+
+        try {
+            const response = await this.ajaxRequest('delete_gallery', {
+                gallery_id: galleryId
+            });
+
+            if (response.success) {
+                const row = document.querySelector(`tr[data-gallery-id="${galleryId}"]`);
+                if (row) {
+                    row.remove();
+                }
+                this.showNotice(mlcgGallery.strings.deleteSuccess, 'success');
+            } else {
+                throw new Error(response.data);
+            }
+        } catch (error) {
+            console.error('Error deleting gallery:', error);
+            this.showNotice('Error deleting gallery: ' + error.message, 'error');
+        }
+    }
+
+    async publishGallery(galleryId) {
+        try {
+            const response = await this.ajaxRequest('publish_gallery', {
+                gallery_id: galleryId
+            });
+
+            if (response.success) {
+                this.updateGalleryStatus(galleryId, 'published');
+                this.showNotice('Gallery published successfully', 'success');
+            } else {
+                throw new Error(response.data);
+            }
+        } catch (error) {
+            console.error('Error publishing gallery:', error);
+            this.showNotice('Error publishing gallery: ' + error.message, 'error');
+        }
+    }
+
+    async unpublishGallery(galleryId) {
+        try {
+            const response = await this.ajaxRequest('unpublish_gallery', {
+                gallery_id: galleryId
+            });
+
+            if (response.success) {
+                this.updateGalleryStatus(galleryId, 'draft');
+                this.showNotice('Gallery unpublished successfully', 'success');
+            } else {
+                throw new Error(response.data);
+            }
+        } catch (error) {
+            console.error('Error unpublishing gallery:', error);
+            this.showNotice('Error unpublishing gallery: ' + error.message, 'error');
+        }
+    }
+
+    async createGallery() {
+        const form = document.getElementById('mlcg-new-gallery-form');
+        const formData = new FormData(form);
+
+        try {
+            const response = await this.ajaxRequest('create_gallery', {
+                name: formData.get('name'),
+                description: formData.get('description'),
+                client_id: formData.get('client_id') || 1
+            });
+
+            if (response.success) {
+                this.showNotice(mlcgGallery.strings.createSuccess, 'success');
+                window.location.href = 'admin.php?page=markuslehr-clientgallery';
+            } else {
+                throw new Error(response.data);
+            }
+        } catch (error) {
+            console.error('Error creating gallery:', error);
+            this.showNotice('Error creating gallery: ' + error.message, 'error');
+        }
+    }
+
+    updateGalleryStatus(galleryId, newStatus) {
+        const row = document.querySelector(`tr[data-gallery-id="${galleryId}"]`);
+        if (row) {
+            const statusCell = row.querySelector('.mlcg-status');
+            const actionsCell = row.querySelector('.mlcg-actions');
+            
+            if (statusCell) {
+                statusCell.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+                statusCell.className = `mlcg-status status-${newStatus}`;
+            }
+
+            if (actionsCell) {
+                if (newStatus === 'published') {
+                    const publishBtn = actionsCell.querySelector('.mlcg-publish');
+                    if (publishBtn) {
+                        publishBtn.textContent = 'Unpublish';
+                        publishBtn.className = 'mlcg-unpublish';
+                    }
+                } else {
+                    const unpublishBtn = actionsCell.querySelector('.mlcg-unpublish');
+                    if (unpublishBtn) {
+                        unpublishBtn.textContent = 'Publish';
+                        unpublishBtn.className = 'mlcg-publish';
+                    }
+                }
+            }
+        }
+    }
+
+    async ajaxRequest(action, data) {
+        const formData = new FormData();
+        formData.append('action', 'mlcg_' + action);
+        formData.append('nonce', mlcgGallery.nonce);
+        
+        for (const [key, value] of Object.entries(data)) {
+            formData.append(key, value);
+        }
+
+        const response = await fetch(mlcgGallery.ajaxUrl, {
+            method: 'POST',
+            body: formData
+        });
+
+        return await response.json();
+    }
+
+    showNotice(message, type = 'info') {
+        const notice = document.createElement('div');
+        notice.className = `notice notice-${type} is-dismissible`;
+        notice.innerHTML = `
+            <p>${message}</p>
+            <button type="button" class="notice-dismiss">
+                <span class="screen-reader-text">Dismiss this notice.</span>
+            </button>
+        `;
+
+        const h1 = document.querySelector('.wrap h1');
+        if (h1) {
+            h1.parentNode.insertBefore(notice, h1.nextSibling);
+        }
+
+        if (type === 'success') {
+            setTimeout(() => {
+                notice.remove();
+            }, 3000);
+        }
+
+        notice.querySelector('.notice-dismiss').addEventListener('click', () => {
+            notice.remove();
+        });
+    }
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    new MLCGAdmin();
+});
+
 (function($) {
     'use strict';
 

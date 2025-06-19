@@ -9,10 +9,12 @@ use MarkusLehr\ClientGallerie\Application\Command\CreateGalleryCommand;
 use MarkusLehr\ClientGallerie\Application\Command\DeleteGalleryCommand;
 use MarkusLehr\ClientGallerie\Application\Command\UpdateGalleryCommand;
 use MarkusLehr\ClientGallerie\Application\Command\PublishGalleryCommand;
+use MarkusLehr\ClientGallerie\Application\Command\UnpublishGalleryCommand;
 use MarkusLehr\ClientGallerie\Application\Handler\CreateGalleryHandler;
 use MarkusLehr\ClientGallerie\Application\Handler\DeleteGalleryHandler;
 use MarkusLehr\ClientGallerie\Application\Handler\UpdateGalleryHandler;
 use MarkusLehr\ClientGallerie\Application\Handler\PublishGalleryHandler;
+use MarkusLehr\ClientGallerie\Application\Handler\UnpublishGalleryHandler;
 
 /**
  * Simple Command Bus
@@ -31,12 +33,14 @@ class SimpleCommandBus implements CommandBusInterface
         CreateGalleryHandler $createHandler,
         DeleteGalleryHandler $deleteHandler,
         UpdateGalleryHandler $updateHandler,
-        PublishGalleryHandler $publishHandler
+        PublishGalleryHandler $publishHandler,
+        UnpublishGalleryHandler $unpublishHandler
     ) {
         $this->handlers[CreateGalleryCommand::class] = $createHandler;
         $this->handlers[DeleteGalleryCommand::class] = $deleteHandler;
         $this->handlers[UpdateGalleryCommand::class] = $updateHandler;
         $this->handlers[PublishGalleryCommand::class] = $publishHandler;
+        $this->handlers[UnpublishGalleryCommand::class] = $unpublishHandler;
     }
 
     /**
@@ -55,5 +59,16 @@ class SimpleCommandBus implements CommandBusInterface
         }
         
         return $this->handlers[$commandClass]->handle($command);
+    }
+    
+    /**
+     * Dispatch a command (alias for execute)
+     * 
+     * @param object $command
+     * @return mixed
+     */
+    public function dispatch(object $command)
+    {
+        return $this->execute($command);
     }
 }

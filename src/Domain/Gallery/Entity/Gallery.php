@@ -153,6 +153,16 @@ class Gallery
         $this->touch();
         return $this;
     }
+    
+    /**
+     * Change gallery status
+     */
+    public function changeStatus(GalleryStatus $status): self
+    {
+        $this->status = $status;
+        $this->touch();
+        return $this;
+    }
 
     /**
      * Update gallery settings

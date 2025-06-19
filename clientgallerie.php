@@ -199,10 +199,116 @@ final class MarkusLehrClientGallerie
             $galleryAdminPage = new \MarkusLehr\ClientGallerie\Infrastructure\WordPress\Admin\GalleryAdminPage();
             $galleryAdminPage->init();
             
-            $this->logger->debug('Admin init completed');
+            // Register AJAX handlers
+            $this->registerAjaxHandlers();
+        }
+        
+        $this->logger->debug('Admin initialized');
+    }
+    
+    /**
+     * Register AJAX handlers for admin functionality
+     */
+    private function registerAjaxHandlers(): void
+    {
+        // Toggle gallery status (publish/unpublish)
+        add_action('wp_ajax_mlcg_toggle_gallery_status', [$this, 'handleToggleGalleryStatus']);
+        
+        // Delete gallery
+        add_action('wp_ajax_mlcg_delete_gallery', [$this, 'handleDeleteGallery']);
+    }
+    
+    /**
+     * Handle AJAX request to toggle gallery status
+     */
+    public function handleToggleGalleryStatus(): void
+    {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'mlcg_admin_nonce')) {
+            wp_send_json_error(['message' => 'Invalid nonce']);
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Insufficient permissions']);
+            return;
+        }
+        
+        $galleryId = intval($_POST['gallery_id']);
+        $status = sanitize_text_field($_POST['status']);
+        
+        if (!$galleryId || !in_array($status, ['draft', 'published'])) {
+            wp_send_json_error(['message' => 'Invalid parameters']);
+            return;
+        }
+        
+        try {
+            $commandBus = $this->serviceContainer->get('commandBus');
+            
+            if ($status === 'published') {
+                $command = new \MarkusLehr\ClientGallerie\Application\Command\PublishGalleryCommand($galleryId);
+            } else {
+                $command = new \MarkusLehr\ClientGallerie\Application\Command\UnpublishGalleryCommand($galleryId);
+            }
+            
+            $commandBus->dispatch($command);
+            
+            wp_send_json_success(['message' => 'Gallery status updated successfully']);
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to toggle gallery status', [
+                'gallery_id' => $galleryId,
+                'status' => $status,
+                'error' => $e->getMessage()
+            ]);
+            
+            wp_send_json_error(['message' => 'Failed to update gallery status']);
         }
     }
-
+    
+    /**
+     * Handle AJAX request to delete gallery
+     */
+    public function handleDeleteGallery(): void
+    {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'mlcg_admin_nonce')) {
+            wp_send_json_error(['message' => 'Invalid nonce']);
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Insufficient permissions']);
+            return;
+        }
+        
+        $galleryId = intval($_POST['gallery_id']);
+        
+        if (!$galleryId) {
+            wp_send_json_error(['message' => 'Invalid gallery ID']);
+            return;
+        }
+        
+        try {
+            $commandBus = $this->serviceContainer->get('commandBus');
+            $command = new \MarkusLehr\ClientGallerie\Application\Command\DeleteGalleryCommand($galleryId);
+            
+            $commandBus->dispatch($command);
+            
+            wp_send_json_success(['message' => 'Gallery deleted successfully']);
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to delete gallery', [
+                'gallery_id' => $galleryId,
+                'error' => $e->getMessage()
+            ]);
+            
+            wp_send_json_error(['message' => 'Failed to delete gallery']);
+        }
+    }
+    
     public function initializeFrontend(): void
     {
         // Initialize frontend gallery handler
