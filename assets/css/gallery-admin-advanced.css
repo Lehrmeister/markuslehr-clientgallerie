@@ -1,0 +1,345 @@
+/**
+ * Gallery Admin CSS - Advanced
+ * 
+ * Modern, responsive styles for the gallery admin interface
+ * 
+ * @package MarkusLehr\ClientGallerie
+ * @author Markus Lehr
+ * @since 1.0.0
+ */
+
+/* ==========================================================================
+   Base Admin Styles
+   ========================================================================== */
+
+.mlcg-gallery-form-container {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    margin-bottom: 30px;
+    padding: 20px;
+}
+
+.mlcg-gallery-form-container h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #1d2327;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.mlcg-galleries-list {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.mlcg-galleries-list h2 {
+    margin: 0;
+    padding: 20px 20px 10px;
+    color: #1d2327;
+    font-size: 18px;
+    font-weight: 600;
+    border-bottom: 1px solid #c3c4c7;
+}
+
+/* ==========================================================================
+   Status Badges
+   ========================================================================== */
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.status-draft {
+    background: #f0f0f1;
+    color: #646970;
+    border: 1px solid #dcdcde;
+}
+
+.status-published {
+    background: #d1e7dd;
+    color: #0a3622;
+    border: 1px solid #a3cfbb;
+}
+
+.status-private {
+    background: #fff3cd;
+    color: #664d03;
+    border: 1px solid #ffecb5;
+}
+
+/* ==========================================================================
+   Gallery Actions
+   ========================================================================== */
+
+.gallery-actions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.gallery-actions .button {
+    margin: 0 !important;
+    font-size: 11px;
+    line-height: 1;
+    padding: 4px 8px;
+    height: auto;
+}
+
+.gallery-actions .button-small {
+    font-size: 11px;
+    padding: 4px 8px;
+}
+
+.button-link-delete {
+    color: #d63638 !important;
+    border-color: #d63638 !important;
+}
+
+.button-link-delete:hover {
+    color: #ffffff !important;
+    background: #d63638 !important;
+    border-color: #d63638 !important;
+}
+
+/* ==========================================================================
+   Modal Styles
+   ========================================================================== */
+
+.mlcg-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 100000;
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.mlcg-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: slideIn 0.3s ease;
+}
+
+.mlcg-modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+    background: #f9f9f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mlcg-modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #23282d;
+}
+
+.mlcg-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+}
+
+.mlcg-modal-close:hover {
+    background: #f0f0f0;
+    color: #000;
+}
+
+.mlcg-modal-body {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.mlcg-modal-footer {
+    padding: 20px;
+    border-top: 1px solid #ddd;
+    background: #f9f9f9;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.mlcg-modal-footer .spinner {
+    margin-left: auto;
+}
+
+/* Prevent body scroll when modal is open */
+body.mlcg-modal-open {
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   Form Styles
+   ========================================================================== */
+
+.form-row {
+    margin-bottom: 20px;
+}
+
+.form-row label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+.form-row .description {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+    color: #646970;
+    font-style: italic;
+}
+
+.form-row input,
+.form-row select,
+.form-row textarea {
+    width: 100%;
+    max-width: 400px;
+}
+
+.form-row input.error,
+.form-row select.error,
+.form-row textarea.error {
+    border-color: #d63638;
+    box-shadow: 0 0 0 1px #d63638;
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.spinner.is-active {
+    visibility: visible;
+    margin: 0;
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Notices Enhancement
+   ========================================================================== */
+
+.notice {
+    position: relative;
+    margin: 15px 0;
+    animation: slideDown 0.3s ease;
+}
+
+.notice.notice-success {
+    border-left-color: #00a32a;
+}
+
+.notice.notice-error {
+    border-left-color: #d63638;
+}
+
+.notice.notice-warning {
+    border-left-color: #dba617;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 782px) {
+    .mlcg-modal {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .mlcg-modal-body {
+        max-height: 50vh;
+    }
+    
+    .gallery-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .gallery-actions .button {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .mlcg-gallery-form-container,
+    .mlcg-galleries-list {
+        margin: 10px 0;
+        padding: 15px;
+    }
+    
+    .form-row input,
+    .form-row select,
+    .form-row textarea {
+        max-width: 100%;
+    }
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

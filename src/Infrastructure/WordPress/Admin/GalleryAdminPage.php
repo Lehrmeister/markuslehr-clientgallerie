@@ -116,9 +116,9 @@ class GalleryAdminPage
         // Enqueue WordPress media scripts for image uploads
         wp_enqueue_media();
         
-        // Enqueue our custom admin scripts
-        $script_url = plugin_dir_url(dirname(dirname(dirname(__DIR__)))) . 'assets/js/gallery-admin.js';
-        $style_url = plugin_dir_url(dirname(dirname(dirname(__DIR__)))) . 'assets/css/gallery-admin.css';
+        // Enqueue our custom admin scripts - use advanced versions
+        $script_url = plugin_dir_url(dirname(dirname(dirname(__DIR__)))) . 'assets/js/gallery-admin-advanced.js';
+        $style_url = plugin_dir_url(dirname(dirname(dirname(__DIR__)))) . 'assets/css/gallery-admin-advanced.css';
         
         wp_enqueue_script(
             'mlcg-gallery-admin',
@@ -140,11 +140,19 @@ class GalleryAdminPage
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mlcg_gallery_action'),
             'strings' => [
-                'confirmDelete' => 'Are you sure you want to delete this gallery?',
+                'confirmDelete' => 'Are you sure you want to delete this gallery? This action cannot be undone.',
                 'createSuccess' => 'Gallery created successfully',
                 'updateSuccess' => 'Gallery updated successfully',
                 'deleteSuccess' => 'Gallery deleted successfully',
+                'publishSuccess' => 'Gallery published successfully',
+                'unpublishSuccess' => 'Gallery unpublished successfully',
                 'error' => 'An error occurred',
+                'loading' => 'Loading...',
+                'saving' => 'Saving...',
+                'deleting' => 'Deleting...',
+                'nameRequired' => 'Gallery name is required',
+                'clientRequired' => 'Please select a client',
+                'invalidSlug' => 'Slug can only contain lowercase letters, numbers, and hyphens'
             ]
         ]);
     }

@@ -40,6 +40,7 @@ final class MarkusLehrClientGallerie
 {
     private static ?self $instance = null;
     private ?\MarkusLehr\ClientGallerie\Infrastructure\Logging\Logger $logger = null;
+    private ?\MarkusLehr\ClientGallerie\Infrastructure\Container\ServiceContainer $serviceContainer = null;
     
     public static function getInstance(): self 
     {
@@ -74,8 +75,8 @@ final class MarkusLehrClientGallerie
     public function loadDependencies(): void 
     {
         // Load core services
-        $serviceContainer = new \MarkusLehr\ClientGallerie\Infrastructure\Container\ServiceContainer();
-        $serviceContainer->register();
+        $this->serviceContainer = new \MarkusLehr\ClientGallerie\Infrastructure\Container\ServiceContainer();
+        $this->serviceContainer->register();
         
         // Initialize repository manager
         $repositoryManager = \MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\RepositoryManager::getInstance();
@@ -87,7 +88,7 @@ final class MarkusLehrClientGallerie
         }
         
         $this->logger?->debug('Dependencies loaded', [
-            'services_registered' => $serviceContainer->getRegisteredServices(),
+            'services_registered' => $this->serviceContainer->getRegisteredServices(),
             'repository_health' => $healthStatus['overall_status']
         ]);
     }
@@ -195,117 +196,43 @@ final class MarkusLehrClientGallerie
     {
         // Admin-specific initialization
         if (is_admin()) {
+            // Ensure service container is initialized
+            if (!$this->serviceContainer) {
+                $this->loadDependencies();
+            }
+            
             // Initialize gallery admin page
             $galleryAdminPage = new \MarkusLehr\ClientGallerie\Infrastructure\WordPress\Admin\GalleryAdminPage();
             $galleryAdminPage->init();
             
-            // Register AJAX handlers
-            $this->registerAjaxHandlers();
+            // Initialize AJAX handlers
+            $this->initAjaxHandlers();
         }
         
         $this->logger->debug('Admin initialized');
     }
     
     /**
-     * Register AJAX handlers for admin functionality
+     * Initialize AJAX handlers
      */
-    private function registerAjaxHandlers(): void
+    private function initAjaxHandlers(): void
     {
-        // Toggle gallery status (publish/unpublish)
-        add_action('wp_ajax_mlcg_toggle_gallery_status', [$this, 'handleToggleGalleryStatus']);
-        
-        // Delete gallery
-        add_action('wp_ajax_mlcg_delete_gallery', [$this, 'handleDeleteGallery']);
-    }
-    
-    /**
-     * Handle AJAX request to toggle gallery status
-     */
-    public function handleToggleGalleryStatus(): void
-    {
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'mlcg_admin_nonce')) {
-            wp_send_json_error(['message' => 'Invalid nonce']);
-            return;
-        }
-        
-        // Check permissions
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => 'Insufficient permissions']);
-            return;
-        }
-        
-        $galleryId = intval($_POST['gallery_id']);
-        $status = sanitize_text_field($_POST['status']);
-        
-        if (!$galleryId || !in_array($status, ['draft', 'published'])) {
-            wp_send_json_error(['message' => 'Invalid parameters']);
-            return;
-        }
-        
         try {
-            $commandBus = $this->serviceContainer->get('commandBus');
-            
-            if ($status === 'published') {
-                $command = new \MarkusLehr\ClientGallerie\Application\Command\PublishGalleryCommand($galleryId);
-            } else {
-                $command = new \MarkusLehr\ClientGallerie\Application\Command\UnpublishGalleryCommand($galleryId);
+            // Check if service container is available
+            if (!$this->serviceContainer) {
+                $this->logger->error('ServiceContainer not initialized when trying to setup AJAX handlers');
+                return;
             }
             
-            $commandBus->dispatch($command);
+            // Get AJAX handler from service container
+            $ajaxHandler = $this->serviceContainer->get(\MarkusLehr\ClientGallerie\Infrastructure\Ajax\GalleryAjaxHandler::class);
+            $ajaxHandler->init();
             
-            wp_send_json_success(['message' => 'Gallery status updated successfully']);
-            
+            $this->logger->debug('AJAX handlers initialized');
         } catch (\Exception $e) {
-            $this->logger->error('Failed to toggle gallery status', [
-                'gallery_id' => $galleryId,
-                'status' => $status,
+            $this->logger->error('Failed to initialize AJAX handlers', [
                 'error' => $e->getMessage()
             ]);
-            
-            wp_send_json_error(['message' => 'Failed to update gallery status']);
-        }
-    }
-    
-    /**
-     * Handle AJAX request to delete gallery
-     */
-    public function handleDeleteGallery(): void
-    {
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'mlcg_admin_nonce')) {
-            wp_send_json_error(['message' => 'Invalid nonce']);
-            return;
-        }
-        
-        // Check permissions
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => 'Insufficient permissions']);
-            return;
-        }
-        
-        $galleryId = intval($_POST['gallery_id']);
-        
-        if (!$galleryId) {
-            wp_send_json_error(['message' => 'Invalid gallery ID']);
-            return;
-        }
-        
-        try {
-            $commandBus = $this->serviceContainer->get('commandBus');
-            $command = new \MarkusLehr\ClientGallerie\Application\Command\DeleteGalleryCommand($galleryId);
-            
-            $commandBus->dispatch($command);
-            
-            wp_send_json_success(['message' => 'Gallery deleted successfully']);
-            
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to delete gallery', [
-                'gallery_id' => $galleryId,
-                'error' => $e->getMessage()
-            ]);
-            
-            wp_send_json_error(['message' => 'Failed to delete gallery']);
         }
     }
     

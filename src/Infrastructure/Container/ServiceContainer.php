@@ -84,8 +84,18 @@ class ServiceContainer
     
     private function registerInfrastructureServices(): void 
     {
+        $container = $this; // Reference für Closures
+        
         $this->singleton('ajax_handler', function() {
             return new \MarkusLehr\ClientGallerie\Infrastructure\Http\AjaxHandler();
+        });
+        
+        // Gallery AJAX Handler
+        $this->singleton(\MarkusLehr\ClientGallerie\Infrastructure\Ajax\GalleryAjaxHandler::class, function() use ($container) {
+            return new \MarkusLehr\ClientGallerie\Infrastructure\Ajax\GalleryAjaxHandler(
+                $container->get(\MarkusLehr\ClientGallerie\Application\Bus\CommandBusInterface::class),
+                $container->get(\MarkusLehr\ClientGallerie\Application\Bus\QueryBusInterface::class)
+            );
         });
         
         // TODO: Implementiere diese Services
