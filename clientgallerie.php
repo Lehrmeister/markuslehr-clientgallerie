@@ -201,8 +201,8 @@ final class MarkusLehrClientGallerie
                 $this->loadDependencies();
             }
             
-            // Initialize gallery admin page
-            $galleryAdminPage = new \MarkusLehr\ClientGallerie\Infrastructure\WordPress\Admin\GalleryAdminPage();
+            // Initialize gallery admin page with shared service container
+            $galleryAdminPage = new \MarkusLehr\ClientGallerie\Infrastructure\WordPress\Admin\GalleryAdminPage($this->serviceContainer);
             $galleryAdminPage->init();
             
             // Initialize AJAX handlers

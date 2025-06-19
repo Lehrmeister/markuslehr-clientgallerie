@@ -25,11 +25,15 @@ class GalleryAdminPage
     private CQRSGalleryAdminController $cqrsController;
     private ServiceContainer $serviceContainer;
 
-    public function __construct()
+    public function __construct(?ServiceContainer $serviceContainer = null)
     {
-        // Initialize service container first
-        $this->serviceContainer = new ServiceContainer();
-        $this->serviceContainer->register();
+        // Use provided service container or create a new one
+        $this->serviceContainer = $serviceContainer ?? new ServiceContainer();
+        
+        // Register service container if it's a new instance
+        if (!$serviceContainer) {
+            $this->serviceContainer->register();
+        }
         
         // Get dependencies from service container
         $this->galleryRepository = $this->serviceContainer->get(GalleryRepositoryInterface::class);
@@ -42,16 +46,11 @@ class GalleryAdminPage
      */
     public function init(): void
     {
-        // Add debug logging
-        error_log('MLCG: GalleryAdminPage::init() called');
-        
         add_action('admin_menu', [$this, 'addAdminMenu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueueScripts']);
         
         // Initialize CQRS controller
         $this->cqrsController->init();
-        
-        error_log('MLCG: Admin hooks registered');
     }
 
     /**
@@ -59,8 +58,6 @@ class GalleryAdminPage
      */
     public function addAdminMenu(): void
     {
-        error_log('MLCG: addAdminMenu() called');
-        
         // Add main menu page
         $hookSuffix = add_menu_page(
             'Client Gallery',                    // Page title
@@ -71,8 +68,6 @@ class GalleryAdminPage
             'dashicons-format-gallery',          // Icon
             30                                   // Position
         );
-        
-        error_log('MLCG: Main menu added with hook suffix: ' . $hookSuffix);
 
         // Add submenu pages
         add_submenu_page(
