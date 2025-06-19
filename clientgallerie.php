@@ -83,10 +83,10 @@ final class MarkusLehrClientGallerie
         // Perform health check on repositories
         $healthStatus = $repositoryManager->getSystemHealth();
         if ($healthStatus['overall_status'] !== 'healthy') {
-            $this->logger->warning('Repository system health issues detected', $healthStatus);
+            $this->logger?->warning('Repository system health issues detected', $healthStatus);
         }
         
-        $this->logger->debug('Dependencies loaded', [
+        $this->logger?->debug('Dependencies loaded', [
             'services_registered' => $serviceContainer->getRegisteredServices(),
             'repository_health' => $healthStatus['overall_status']
         ]);
@@ -104,18 +104,21 @@ final class MarkusLehrClientGallerie
         add_action('wp_enqueue_scripts', [$this, 'enqueueScripts']);
         add_action('admin_enqueue_scripts', [$this, 'adminEnqueueScripts']);
         
-        // Admin Controller für Backend
+        // Admin Controller für Backend - only after tables are created
+        // TODO: Re-enable after successful database setup
+        /*
         if (is_admin()) {
             $adminController = new \MarkusLehr\ClientGallerie\Application\Controller\AdminController();
             $adminController->initialize();
             $this->logger->debug('Admin controller initialized in hooks');
         }
+        */
         
-        // AJAX hooks
-        add_action('wp_ajax_mlcg_action', [$this, 'handleAjaxRequest']);
-        add_action('wp_ajax_nopriv_mlcg_action', [$this, 'handleAjaxRequest']);
+        // AJAX hooks - disabled for now
+        // add_action('wp_ajax_mlcg_action', [$this, 'handleAjaxRequest']);
+        // add_action('wp_ajax_nopriv_mlcg_action', [$this, 'handleAjaxRequest']);
         
-        $this->logger->debug('WordPress hooks initialized');
+        $this->logger?->debug('WordPress hooks initialized');
     }
     
     public function activate(): void 
@@ -249,27 +252,15 @@ final class MarkusLehrClientGallerie
             // Get repository manager
             $repositories = \MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\RepositoryManager::getInstance();
             
-            // Initialize gallery management with repository
-            $galleryManager = new \MarkusLehr\ClientGallerie\Domain\Gallery\Service\GalleryManager();
-            
-            // Initialize image processing
-            $imageProcessor = new \MarkusLehr\ClientGallerie\Domain\Image\Service\ImageProcessor();
-            
-            // Initialize security
-            $securityManager = new \MarkusLehr\ClientGallerie\Domain\Security\Service\SecurityManager();
-            
             // Get system statistics
             $stats = $repositories->getAggregatedStatistics();
             
-            $this->logger->debug('Core components initialized', [
-                'gallery_manager' => get_class($galleryManager),
-                'image_processor' => get_class($imageProcessor),
-                'security_manager' => get_class($securityManager),
+            $this->logger?->debug('Core components initialized', [
                 'repository_stats' => $stats['totals'] ?? []
             ]);
             
         } catch (\Exception $e) {
-            $this->logger->error('Failed to initialize components', [
+            $this->logger?->error('Failed to initialize components', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);

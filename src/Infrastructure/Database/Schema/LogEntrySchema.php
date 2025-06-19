@@ -13,7 +13,7 @@ class LogEntrySchema extends BaseSchema
 {
     protected function getTableSuffix(): string 
     {
-        return 'mlcg_log_entries';
+        return 'ml_clientgallerie_log_entries';
     }
     
     protected function getCreateTableSQL(): string 

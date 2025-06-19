@@ -13,7 +13,7 @@ class ClientSchema extends BaseSchema
 {
     protected function getTableSuffix(): string 
     {
-        return 'mlcg_clients';
+        return 'ml_clientgallerie_clients';
     }
     
     protected function getCreateTableSQL(): string 

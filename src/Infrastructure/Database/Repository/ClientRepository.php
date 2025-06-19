@@ -14,9 +14,17 @@ use MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\BaseRepository;
 class ClientRepository extends BaseRepository
 {
     /**
+     * Get the table suffix (required by BaseRepository)
+     */
+    protected function getTableSuffix(): string
+    {
+        return 'ml_clientgallerie_clients';
+    }
+
+    /**
      * Get the table name
      */
-    protected function getTableName(): string
+    public function getTableName(): string  // FIXED: public instead of protected
     {
         return $this->wpdb->prefix . 'ml_clientgallerie_clients';
     }
@@ -218,6 +226,19 @@ class ClientRepository extends BaseRepository
      */
     public function getStatistics(): array
     {
+        // Check if table exists first
+        if (!$this->validateTableExists()) {
+            return [
+                'total_clients' => 0,
+                'active_clients' => 0,
+                'clients_with_company' => 0,
+                'clients_with_phone' => 0,
+                'clients_with_website' => 0,
+                'unique_countries' => 0,
+                'unique_companies' => 0
+            ];
+        }
+        
         $sql = "SELECT 
                     COUNT(*) as total_clients,
                     COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_clients,

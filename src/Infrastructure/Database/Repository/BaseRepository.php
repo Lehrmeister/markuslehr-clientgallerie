@@ -400,4 +400,18 @@ abstract class BaseRepository implements RepositoryInterface
         
         return $results ?: [];
     }
+    
+    /**
+     * Validates that the table exists
+     */
+    public function validateTableExists(): bool
+    {
+        $sql = $this->wpdb->prepare(
+            "SHOW TABLES LIKE %s",
+            $this->tableName
+        );
+        
+        $result = $this->wpdb->get_var($sql);
+        return !empty($result);
+    }
 }

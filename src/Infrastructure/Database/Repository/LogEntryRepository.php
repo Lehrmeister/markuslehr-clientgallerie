@@ -14,9 +14,17 @@ use MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\BaseRepository;
 class LogEntryRepository extends BaseRepository
 {
     /**
+     * Get the table suffix (required by BaseRepository)
+     */
+    protected function getTableSuffix(): string
+    {
+        return 'ml_clientgallerie_log_entries';
+    }
+
+    /**
      * Get the table name
      */
-    protected function getTableName(): string
+    public function getTableName(): string  // FIXED: public instead of protected
     {
         return $this->wpdb->prefix . 'ml_clientgallerie_log_entries';
     }
@@ -247,6 +255,25 @@ class LogEntryRepository extends BaseRepository
      */
     public function getStatistics(array $options = []): array
     {
+        // Check if table exists first
+        if (!$this->validateTableExists()) {
+            return [
+                'total_entries' => 0,
+                'debug_count' => 0,
+                'info_count' => 0,
+                'notice_count' => 0,
+                'warning_count' => 0,
+                'error_count' => 0,
+                'critical_count' => 0,
+                'alert_count' => 0,
+                'emergency_count' => 0,
+                'unique_channels' => 0,
+                'unique_users' => 0,
+                'unique_clients' => 0,
+                'unique_ips' => 0
+            ];
+        }
+
         $startDate = $options['start_date'] ?? date('Y-m-d H:i:s', strtotime('-30 days'));
         $endDate = $options['end_date'] ?? current_time('mysql');
 
@@ -313,6 +340,11 @@ class LogEntryRepository extends BaseRepository
      */
     public function getRecentActivity(array $options = []): array
     {
+        // Check if table exists first
+        if (!$this->validateTableExists()) {
+            return [];
+        }
+        
         $limit = $options['limit'] ?? 50;
         $excludeLevels = $options['exclude_levels'] ?? ['debug'];
 
@@ -499,6 +531,11 @@ class LogEntryRepository extends BaseRepository
      */
     public function getChannels(): array
     {
+        // Check if table exists first
+        if (!$this->validateTableExists()) {
+            return [];
+        }
+        
         $sql = "SELECT DISTINCT channel FROM {$this->getTableName()} 
                 WHERE channel IS NOT NULL 
                 ORDER BY channel ASC";
@@ -513,6 +550,11 @@ class LogEntryRepository extends BaseRepository
      */
     public function getLevels(): array
     {
+        // Check if table exists first
+        if (!$this->validateTableExists()) {
+            return [];
+        }
+        
         $sql = "SELECT DISTINCT level FROM {$this->getTableName()} 
                 ORDER BY 
                     CASE level
