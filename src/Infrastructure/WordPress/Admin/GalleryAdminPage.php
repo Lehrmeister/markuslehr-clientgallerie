@@ -379,10 +379,10 @@ class GalleryAdminPage
                     url: ajaxurl,
                     type: 'POST',
                     data: {
-                        action: 'mlcg_toggle_gallery_status',
+                        action: 'mlcg_change_gallery_status',
                         gallery_id: galleryId,
                         status: action,
-                        nonce: '<?php echo wp_create_nonce('mlcg_admin_nonce'); ?>'
+                        nonce: '<?php echo wp_create_nonce('mlcg_gallery_action'); ?>'
                     },
                     success: function(response) {
                         if (response.success) {
@@ -417,7 +417,7 @@ class GalleryAdminPage
                     data: {
                         action: 'mlcg_delete_gallery',
                         gallery_id: galleryId,
-                        nonce: '<?php echo wp_create_nonce('mlcg_admin_nonce'); ?>'
+                        nonce: '<?php echo wp_create_nonce('mlcg_gallery_action'); ?>'
                     },
                     success: function(response) {
                         if (response.success) {
