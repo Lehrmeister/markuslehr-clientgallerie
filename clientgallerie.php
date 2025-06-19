@@ -102,7 +102,7 @@ final class MarkusLehrClientGallerie
         // WordPress hooks
         add_action('init', [$this, 'init']);
         add_action('admin_init', [$this, 'adminInit']);
-        add_action('admin_menu', [$this, 'adminMenu']); // Direct admin menu hook
+        add_action('admin_menu', [$this, 'adminMenu'], 10); // Ensure admin menu is added after dependencies are loaded
         add_action('wp_enqueue_scripts', [$this, 'enqueueScripts']);
         add_action('admin_enqueue_scripts', [$this, 'adminEnqueueScripts']);
         
@@ -394,6 +394,11 @@ final class MarkusLehrClientGallerie
     
     public function adminMenu(): void
     {
+        // Ensure service container is initialized before creating admin menu
+        if (!$this->serviceContainer) {
+            $this->loadDependencies();
+        }
+        
         // Direct admin menu registration
         add_menu_page(
             'Client Gallery',                    // Page title
@@ -431,14 +436,21 @@ final class MarkusLehrClientGallerie
     {
         // Get galleries using CQRS
         try {
-            $container = new \MarkusLehr\ClientGallerie\Infrastructure\Container\ServiceContainer();
-            $container->register();
-            $queryBus = $container->get(\MarkusLehr\ClientGallerie\Application\Bus\QueryBusInterface::class);
+            // Ensure ServiceContainer is initialized
+            if (!$this->serviceContainer) {
+                $this->loadDependencies();
+            }
+            
+            $queryBus = $this->serviceContainer->get(\MarkusLehr\ClientGallerie\Application\Bus\QueryBusInterface::class);
             $listQuery = new \MarkusLehr\ClientGallerie\Application\Query\ListGalleriesQuery();
             $galleries = $queryBus->execute($listQuery);
         } catch (\Exception $e) {
             $galleries = [];
             $error = $e->getMessage();
+            $this->logger?->error('Error rendering admin page', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
 
         echo '<div class="wrap">';
@@ -655,10 +667,13 @@ final class MarkusLehrClientGallerie
         $status = in_array($_POST['gallery_status'], ['draft', 'published']) ? $_POST['gallery_status'] : 'draft';
 
         try {
+            // Ensure ServiceContainer is initialized
+            if (!$this->serviceContainer) {
+                $this->loadDependencies();
+            }
+            
             // Use CQRS to create gallery
-            $container = new \MarkusLehr\ClientGallerie\Infrastructure\Container\ServiceContainer();
-            $container->register();
-            $commandBus = $container->get(\MarkusLehr\ClientGallerie\Application\Bus\CommandBusInterface::class);
+            $commandBus = $this->serviceContainer->get(\MarkusLehr\ClientGallerie\Application\Bus\CommandBusInterface::class);
             
             $createCommand = new \MarkusLehr\ClientGallerie\Application\Command\CreateGalleryCommand(
                 $name,
@@ -689,6 +704,10 @@ final class MarkusLehrClientGallerie
             
         } catch (\Exception $e) {
             echo '<div class="notice notice-error"><p>Error creating gallery: ' . esc_html($e->getMessage()) . '</p></div>';
+            $this->logger?->error('Error creating gallery', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
 }
