@@ -102,7 +102,7 @@ final class MarkusLehrClientGallerie
         // WordPress hooks
         add_action('init', [$this, 'init']);
         add_action('admin_init', [$this, 'adminInit']);
-        // Note: admin_menu hook is now handled by GalleryAdminPage class
+        add_action('admin_menu', [$this, 'adminMenu']); // Re-add admin menu hook to main plugin
         add_action('wp_enqueue_scripts', [$this, 'enqueueScripts']);
         add_action('admin_enqueue_scripts', [$this, 'adminEnqueueScripts']);
         
@@ -286,6 +286,30 @@ final class MarkusLehrClientGallerie
             );
             
             $this->logger->debug('Admin assets enqueued');
+        }
+    }
+    
+    /**
+     * Register admin menu via GalleryAdminPage
+     */
+    public function adminMenu(): void 
+    {
+        try {
+            // Ensure service container is initialized
+            if (!$this->serviceContainer) {
+                $this->loadDependencies();
+            }
+            
+            // Initialize and register admin menu via GalleryAdminPage
+            $galleryAdminPage = new \MarkusLehr\ClientGallerie\Infrastructure\WordPress\Admin\GalleryAdminPage($this->serviceContainer);
+            $galleryAdminPage->addAdminMenu();
+            
+            $this->logger?->debug('Admin menu registered via GalleryAdminPage');
+        } catch (\Exception $e) {
+            $this->logger?->error('Failed to register admin menu', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
     
