@@ -100,10 +100,16 @@ try {
     // Remove existing hooks to test fresh registration
     remove_all_actions('admin_menu');
     
-    // Test admin menu method
+    // Test admin menu registration via GalleryAdminPage
     try {
-        $plugin->adminMenu();
-        echo "   ✅ Admin menu method executed without errors\n";
+        // Create GalleryAdminPage with shared service container
+        $galleryAdminPage = new \MarkusLehr\ClientGallerie\Infrastructure\WordPress\Admin\GalleryAdminPage($serviceContainer);
+        $galleryAdminPage->init();
+        
+        echo "   ✅ GalleryAdminPage initialized without errors\n";
+        
+        // Simulate admin_menu hook execution
+        do_action('admin_menu');
         
         // Check if menu was registered (simulate WordPress admin_menu hook)
         global $menu, $submenu;
