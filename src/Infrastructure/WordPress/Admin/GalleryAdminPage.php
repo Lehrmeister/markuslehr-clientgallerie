@@ -49,8 +49,8 @@ class GalleryAdminPage
         add_action('admin_menu', [$this, 'addAdminMenu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueueScripts']);
         
-        // Initialize CQRS controller
-        $this->cqrsController->init();
+        // Note: CQRS controller is available but not auto-initialized to avoid hook conflicts
+        // The CQRS functionality is accessed via the AJAX handlers instead
     }
 
     /**
@@ -175,6 +175,7 @@ class GalleryAdminPage
             <div class="mlcg-gallery-form-container">
                 <h2>Create New Gallery</h2>
                 <form id="mlcg-create-gallery-form" class="mlcg-gallery-form">
+                    <?php wp_nonce_field('mlcg_gallery_action', 'mlcg_nonce'); ?>
                     <table class="form-table">
                         <tr>
                             <th scope="row">
@@ -313,6 +314,7 @@ class GalleryAdminPage
             <div class="mlcg-modal-content">
                 <h2>Edit Gallery</h2>
                 <form id="mlcg-edit-gallery-form">
+                    <?php wp_nonce_field('mlcg_gallery_action', 'mlcg_edit_nonce'); ?>
                     <input type="hidden" id="edit-gallery-id" name="id">
                     
                     <table class="form-table">
