@@ -84,12 +84,6 @@ class AjaxHandler
     private function registerHandlers(): void 
     {
         $this->handlers = [
-            'get_galleries' => [$this, 'handleGetGalleries'],
-            'upload_image' => [$this, 'handleUploadImage'],
-            'rate_image' => [$this, 'handleRateImage'],
-            'get_images' => [$this, 'handleGetImages'],
-            'delete_image' => [$this, 'handleDeleteImage'],
-            'update_gallery' => [$this, 'handleUpdateGallery'],
             'get_client_access' => [$this, 'handleGetClientAccess'],
             'get_logs' => [$this, 'handleGetLogs'], // Für Admin-Interface
             'clear_logs' => [$this, 'handleClearLogs']
@@ -109,85 +103,8 @@ class AjaxHandler
     // Handler-Methoden
     public function handleGetGalleries(): array 
     {
-        // Implementierung für Gallery-Abruf
-        return ['galleries' => []];
-    }
-    
-    public function handleUploadImage(): array 
-    {
-        $logger = LoggerRegistry::getLogger();
-        
-        if (!isset($_FILES['image'])) {
-            throw new \InvalidArgumentException('No image file provided');
-        }
-        
-        $file = $_FILES['image'];
-        $galleryId = (int) ($_POST['gallery_id'] ?? 0);
-        
-        $logger?->info('Image upload started', [
-            'gallery_id' => $galleryId,
-            'filename' => $file['name'],
-            'size' => $file['size'],
-            'type' => $file['type']
-        ]);
-        
-        // Upload-Logik hier implementieren
-        
-        return ['image_id' => 123, 'message' => 'Image uploaded successfully'];
-    }
-    
-    public function handleRateImage(): array 
-    {
-        $imageId = (int) ($_POST['image_id'] ?? 0);
-        $rating = $_POST['rating'] ?? '';
-        $clientId = (int) ($_POST['client_id'] ?? 0);
-        
-        LoggerRegistry::getLogger()?->info('Image rated', [
-            'image_id' => $imageId,
-            'rating' => $rating,
-            'client_id' => $clientId
-        ]);
-        
-        return ['success' => true];
-    }
-    
-    public function handleGetImages(): array 
-    {
-        $galleryId = (int) ($_GET['gallery_id'] ?? 0);
-        $clientId = (int) ($_GET['client_id'] ?? 0);
-        
-        // Performance-Log für häufige Requests
-        LoggerRegistry::getLogger()?->debug('Images requested', [
-            'gallery_id' => $galleryId,
-            'client_id' => $clientId
-        ]);
-        
-        return ['images' => []];
-    }
-    
-    public function handleDeleteImage(): array 
-    {
-        $imageId = (int) ($_POST['image_id'] ?? 0);
-        
-        LoggerRegistry::getLogger()?->warning('Image deletion requested', [
-            'image_id' => $imageId,
-            'user_id' => get_current_user_id()
-        ]);
-        
-        return ['success' => true];
-    }
-    
-    public function handleUpdateGallery(): array 
-    {
-        $galleryId = (int) ($_POST['gallery_id'] ?? 0);
-        $data = $_POST['data'] ?? [];
-        
-        LoggerRegistry::getLogger()?->info('Gallery update requested', [
-            'gallery_id' => $galleryId,
-            'fields_updated' => array_keys($data)
-        ]);
-        
-        return ['success' => true];
+        // Implementierung könnte hier ergänzt werden, wenn benötigt
+        return [];
     }
     
     public function handleGetClientAccess(): array 

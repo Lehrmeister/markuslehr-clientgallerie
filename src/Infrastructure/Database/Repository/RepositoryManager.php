@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace MarkusLehr\ClientGallerie\Infrastructure\Database\Repository;
 
-use MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\GalleryRepository;
-use MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\ImageRepository;
 use MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\ClientRepository;
-use MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\RatingRepository;
 use MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\LogEntryRepository;
 
 /**
@@ -19,10 +16,7 @@ class RepositoryManager
 {
     private static ?RepositoryManager $instance = null;
 
-    private ?GalleryRepository $galleryRepository = null;
-    private ?ImageRepository $imageRepository = null;
     private ?ClientRepository $clientRepository = null;
-    private ?RatingRepository $ratingRepository = null;
     private ?LogEntryRepository $logEntryRepository = null;
 
     /**
@@ -46,30 +40,6 @@ class RepositoryManager
     }
 
     /**
-     * Get gallery repository
-     */
-    public function galleries(): GalleryRepository
-    {
-        if ($this->galleryRepository === null) {
-            $this->galleryRepository = new GalleryRepository();
-        }
-
-        return $this->galleryRepository;
-    }
-
-    /**
-     * Get image repository
-     */
-    public function images(): ImageRepository
-    {
-        if ($this->imageRepository === null) {
-            $this->imageRepository = new ImageRepository();
-        }
-
-        return $this->imageRepository;
-    }
-
-    /**
      * Get client repository
      */
     public function clients(): ClientRepository
@@ -79,18 +49,6 @@ class RepositoryManager
         }
 
         return $this->clientRepository;
-    }
-
-    /**
-     * Get rating repository
-     */
-    public function ratings(): RatingRepository
-    {
-        if ($this->ratingRepository === null) {
-            $this->ratingRepository = new RatingRepository();
-        }
-
-        return $this->ratingRepository;
     }
 
     /**
@@ -111,10 +69,7 @@ class RepositoryManager
     public function getAllRepositories(): array
     {
         return [
-            'galleries' => $this->galleries(),
-            'images' => $this->images(),
             'clients' => $this->clients(),
-            'ratings' => $this->ratings(),
             'logs' => $this->logs()
         ];
     }
@@ -278,37 +233,8 @@ class RepositoryManager
         $issues = [];
 
         try {
-            // Check for orphaned images (images without gallery)
-            $orphanedImages = $this->images()->findAll(['limit' => 1000]);
-            $galleryIds = array_unique(array_column($orphanedImages, 'gallery_id'));
-            
-            foreach ($galleryIds as $galleryId) {
-                if (!$this->galleries()->findById((int)$galleryId)) {
-                    $issues[] = "Orphaned images found for non-existent gallery ID: {$galleryId}";
-                }
-            }
-
-            // Check for orphaned ratings
-            $orphanedRatings = $this->ratings()->findAll(['limit' => 1000]);
-            foreach ($orphanedRatings as $rating) {
-                if ($rating['client_id'] && !$this->clients()->findById((int)$rating['client_id'])) {
-                    $issues[] = "Rating {$rating['id']} references non-existent client ID: {$rating['client_id']}";
-                }
-                if ($rating['gallery_id'] && !$this->galleries()->findById((int)$rating['gallery_id'])) {
-                    $issues[] = "Rating {$rating['id']} references non-existent gallery ID: {$rating['gallery_id']}";
-                }
-                if ($rating['image_id'] && !$this->images()->findById((int)$rating['image_id'])) {
-                    $issues[] = "Rating {$rating['id']} references non-existent image ID: {$rating['image_id']}";
-                }
-            }
-
-            // Check for galleries without clients
-            $galleriesWithoutClients = $this->galleries()->findAll(['limit' => 1000]);
-            foreach ($galleriesWithoutClients as $gallery) {
-                if ($gallery['client_id'] && !$this->clients()->findById((int)$gallery['client_id'])) {
-                    $issues[] = "Gallery {$gallery['id']} references non-existent client ID: {$gallery['client_id']}";
-                }
-            }
+            // Grundlegende Integritätsprüfungen können hier hinzugefügt werden
+            // Aktuell nur Clients und Logs verfügbar
 
         } catch (\Exception $e) {
             $issues[] = "Error during integrity validation: " . $e->getMessage();

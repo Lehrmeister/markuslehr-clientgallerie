@@ -29,9 +29,6 @@ class SchemaManager
     {
         $this->schemas = [
             'clients' => new ClientSchema(),
-            'galleries' => new GallerySchema(),
-            'images' => new ImageSchema(),
-            'ratings' => new RatingSchema(),
             'log_entries' => new LogEntrySchema(),
         ];
     }
@@ -43,9 +40,6 @@ class SchemaManager
     {
         $this->dependencies = [
             'clients' => [],
-            'galleries' => ['clients'],
-            'images' => ['galleries'],
-            'ratings' => ['images', 'clients'],
             'log_entries' => [],
         ];
     }

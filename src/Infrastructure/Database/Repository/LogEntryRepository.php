@@ -33,8 +33,6 @@ class LogEntryRepository extends BaseRepository
             'channel' => 'string|max:100',
             'user_id' => 'numeric',
             'client_id' => 'numeric',
-            'gallery_id' => 'numeric',
-            'image_id' => 'numeric',
             'ip_address' => 'string|max:45',
             'user_agent' => 'string|max:500',
             'request_uri' => 'string|max:500',

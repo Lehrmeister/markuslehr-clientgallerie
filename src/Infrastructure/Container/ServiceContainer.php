@@ -54,30 +54,18 @@ class ServiceContainer
             return new \MarkusLehr\ClientGallerie\Infrastructure\Database\Installer();
         });
         
-        // TODO: Implementiere diese Repositories
-        // $this->singleton('gallery_repository', function() {
-        //     return new \MarkusLehr\ClientGallerie\Infrastructure\Database\GalleryRepository();
-        // });
+        // Implementierte Repositories
+        $this->singleton('client_repository', function() {
+            return new \MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\ClientRepository();
+        });
         
-        // $this->singleton('image_repository', function() {
-        //     return new \MarkusLehr\ClientGallerie\Infrastructure\Database\ImageRepository();
-        // });
-        
-        // $this->singleton('client_repository', function() {
-        //     return new \MarkusLehr\ClientGallerie\Infrastructure\Database\ClientRepository();
-        // });
+        $this->singleton('log_entry_repository', function() {
+            return new \MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\LogEntryRepository();
+        });
     }
     
     private function registerDomainServices(): void 
     {
-        $this->singleton('gallery_manager', function() {
-            return new \MarkusLehr\ClientGallerie\Domain\Gallery\Service\GalleryManager();
-        });
-        
-        $this->singleton('image_processor', function() {
-            return new \MarkusLehr\ClientGallerie\Domain\Image\Service\ImageProcessor();
-        });
-        
         $this->singleton('security_manager', function() {
             return new \MarkusLehr\ClientGallerie\Domain\Security\Service\SecurityManager();
         });

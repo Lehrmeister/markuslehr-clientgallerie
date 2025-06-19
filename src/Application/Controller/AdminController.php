@@ -518,19 +518,15 @@ class AdminController
             $repositoryManager = \MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\RepositoryManager::getInstance();
             $healthStatus = $repositoryManager->getSystemHealth();
             
-            // Erweiterte Integritätsprüfung
+            // Einfache Integritätsprüfung
             $integrityResults = [];
             
-            // Prüfe Foreign Key Constraints
+            // Grundlegende Datenbankprüfungen
             global $wpdb;
-            $galleries = $wpdb->get_results("SELECT id FROM {$wpdb->prefix}mlcg_galleries");
-            $orphanedImages = $wpdb->get_var("
-                SELECT COUNT(*) FROM {$wpdb->prefix}mlcg_images 
-                WHERE gallery_id NOT IN (SELECT id FROM {$wpdb->prefix}mlcg_galleries)
-            ");
+            $clients = $wpdb->get_results("SELECT id FROM {$wpdb->prefix}mlcg_clients");
             
-            $integrityResults['orphaned_images'] = $orphanedImages;
-            $integrityResults['total_galleries'] = count($galleries);
+            $integrityResults['total_clients'] = count($clients);
+            $integrityResults['status'] = 'clean'; // Keine Gallery/Image-Abhängigkeiten mehr
             
             LoggerRegistry::getLogger()?->info('Integrity check completed via admin', [
                 'health_status' => $healthStatus,

@@ -371,26 +371,11 @@ class ClientRepository extends BaseRepository
             return null;
         }
 
-        // Get related galleries
-        $galleriesTable = $this->wpdb->prefix . 'ml_clientgallerie_galleries';
-        $gallerysSql = "SELECT * FROM {$galleriesTable} WHERE client_id = %d";
-        $galleries = $this->wpdb->get_results(
-            $this->wpdb->prepare($gallerysSql, $clientId),
-            ARRAY_A
-        ) ?: [];
-
-        // Get related ratings
-        $ratingsTable = $this->wpdb->prefix . 'ml_clientgallerie_ratings';
-        $ratingsSql = "SELECT * FROM {$ratingsTable} WHERE client_id = %d";
-        $ratings = $this->wpdb->get_results(
-            $this->wpdb->prepare($ratingsSql, $clientId),
-            ARRAY_A
-        ) ?: [];
+        // Currently no related data to fetch for clients
+        // This can be extended when Gallery/Rating systems are re-implemented
 
         return [
             'client' => $client,
-            'galleries' => $galleries,
-            'ratings' => $ratings,
             'export_date' => current_time('mysql'),
             'export_format_version' => '1.0'
         ];

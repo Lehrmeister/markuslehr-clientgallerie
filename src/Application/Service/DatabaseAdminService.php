@@ -45,20 +45,6 @@ class DatabaseAdminService
     }
 
     /**
-     * Get gallery management data
-     */
-    public function getGalleryData(array $options = []): array
-    {
-        $galleries = $this->repositoryManager->galleries();
-        
-        return [
-            'galleries' => $galleries->findAll($options),
-            'statistics' => $galleries->getStatistics(),
-            'recent_galleries' => $galleries->findRecent(['limit' => 10])
-        ];
-    }
-
-    /**
      * Get client management data
      */
     public function getClientData(array $options = []): array
@@ -67,41 +53,7 @@ class DatabaseAdminService
         
         return [
             'clients' => $clients->findAll($options),
-            'statistics' => $clients->getStatistics(),
-            'clients_with_galleries' => $clients->findWithGalleries(['limit' => 50]),
-            'clients_without_galleries' => $clients->findWithoutGalleries(['limit' => 20])
-        ];
-    }
-
-    /**
-     * Get image management data
-     */
-    public function getImageData(array $options = []): array
-    {
-        $images = $this->repositoryManager->images();
-        
-        return [
-            'images' => $images->findAll($options),
-            'statistics' => $images->getStatistics(),
-            'featured_images' => $images->findFeatured(['limit' => 10]),
-            'large_images' => $images->findLargeImages(),
-            'duplicates' => $images->findDuplicates()
-        ];
-    }
-
-    /**
-     * Get rating management data
-     */
-    public function getRatingData(array $options = []): array
-    {
-        $ratings = $this->repositoryManager->ratings();
-        
-        return [
-            'ratings' => $ratings->findAll($options),
-            'statistics' => $ratings->getStatistics(),
-            'unmoderated' => $ratings->findUnmoderated(['limit' => 50]),
-            'top_rated_galleries' => $ratings->findTopRatedGalleries(['limit' => 10]),
-            'top_rated_images' => $ratings->findTopRatedImages(['limit' => 10])
+            'statistics' => $clients->getStatistics()
         ];
     }
 
@@ -130,9 +82,7 @@ class DatabaseAdminService
         $limit = $options['limit'] ?? 10;
         
         return [
-            'galleries' => $this->repositoryManager->galleries()->search($term, ['limit' => $limit]),
             'clients' => $this->repositoryManager->clients()->search($term, ['limit' => $limit]),
-            'images' => $this->repositoryManager->images()->search($term, ['limit' => $limit]),
             'logs' => $this->repositoryManager->logs()->search($term, ['limit' => $limit]),
             'search_term' => $term
         ];
@@ -215,29 +165,20 @@ class DatabaseAdminService
     public function exportSystemData(array $options = []): array
     {
         $format = $options['format'] ?? 'json';
-        $includeTypes = $options['include'] ?? ['galleries', 'clients', 'images', 'ratings'];
+        $includeTypes = $options['include'] ?? ['clients'];
 
         $data = [
             'export_info' => [
                 'generated_at' => current_time('mysql'),
-                'plugin_version' => MLCG_VERSION,
+                'plugin_version' => MLCG_VERSION ?? '1.0.0',
                 'format' => $format
             ]
         ];
 
         foreach ($includeTypes as $type) {
             switch ($type) {
-                case 'galleries':
-                    $data['galleries'] = $this->repositoryManager->galleries()->findAll();
-                    break;
                 case 'clients':
                     $data['clients'] = $this->repositoryManager->clients()->findAll();
-                    break;
-                case 'images':
-                    $data['images'] = $this->repositoryManager->images()->findAll();
-                    break;
-                case 'ratings':
-                    $data['ratings'] = $this->repositoryManager->ratings()->findAll();
                     break;
             }
         }
@@ -286,9 +227,6 @@ class DatabaseAdminService
     private function registerSchemas(): void
     {
         $this->schemaManager->registerSchema(new \MarkusLehr\ClientGallerie\Infrastructure\Database\Schema\ClientSchema());
-        $this->schemaManager->registerSchema(new \MarkusLehr\ClientGallerie\Infrastructure\Database\Schema\GallerySchema());
-        $this->schemaManager->registerSchema(new \MarkusLehr\ClientGallerie\Infrastructure\Database\Schema\ImageSchema());
-        $this->schemaManager->registerSchema(new \MarkusLehr\ClientGallerie\Infrastructure\Database\Schema\RatingSchema());
         $this->schemaManager->registerSchema(new \MarkusLehr\ClientGallerie\Infrastructure\Database\Schema\LogEntrySchema());
     }
 

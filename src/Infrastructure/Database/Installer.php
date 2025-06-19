@@ -28,71 +28,10 @@ class Installer
         $logger = LoggerRegistry::getLogger();
         $logger?->info('Database installation started');
         
-        $this->createGalleriesTable();
-        $this->createImagesTable();
         $this->createClientsTable();
-        $this->createRatingsTable();
         $this->createLogEntriesTable();
         
         $logger?->info('Database installation completed');
-    }
-    
-    private function createGalleriesTable(): void 
-    {
-        $tableName = $this->wpdb->prefix . 'mlcg_galleries';
-        
-        $sql = "CREATE TABLE $tableName (
-            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-            title varchar(255) NOT NULL,
-            description text,
-            slug varchar(255) NOT NULL,
-            client_id bigint(20) unsigned DEFAULT NULL,
-            status enum('draft','published','archived') DEFAULT 'draft',
-            settings longtext DEFAULT NULL COMMENT 'JSON settings',
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            created_by bigint(20) unsigned DEFAULT NULL,
-            PRIMARY KEY (id),
-            UNIQUE KEY slug (slug),
-            KEY client_id (client_id),
-            KEY status (status),
-            KEY created_by (created_by)
-        ) $this->charset;";
-        
-        $this->executeSql($sql, $tableName);
-    }
-    
-    private function createImagesTable(): void 
-    {
-        $tableName = $this->wpdb->prefix . 'mlcg_images';
-        
-        $sql = "CREATE TABLE $tableName (
-            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-            gallery_id bigint(20) unsigned NOT NULL,
-            filename varchar(255) NOT NULL,
-            original_filename varchar(255) NOT NULL,
-            file_path varchar(500) NOT NULL,
-            file_size bigint(20) unsigned DEFAULT NULL,
-            mime_type varchar(100) DEFAULT NULL,
-            title varchar(255) DEFAULT NULL,
-            description text,
-            alt_text varchar(255) DEFAULT NULL,
-            sort_order int(11) DEFAULT 0,
-            width int(11) DEFAULT NULL,
-            height int(11) DEFAULT NULL,
-            metadata longtext DEFAULT NULL COMMENT 'JSON metadata',
-            status enum('active','hidden','deleted') DEFAULT 'active',
-            uploaded_at datetime DEFAULT CURRENT_TIMESTAMP,
-            uploaded_by bigint(20) unsigned DEFAULT NULL,
-            PRIMARY KEY (id),
-            KEY gallery_id (gallery_id),
-            KEY filename (filename),
-            KEY status (status),
-            KEY sort_order (sort_order),
-            KEY uploaded_by (uploaded_by)
-        ) $this->charset;";
-        
-        $this->executeSql($sql, $tableName);
     }
     
     private function createClientsTable(): void 
@@ -118,28 +57,6 @@ class Installer
             UNIQUE KEY access_key (access_key),
             KEY status (status),
             KEY created_by (created_by)
-        ) $this->charset;";
-        
-        $this->executeSql($sql, $tableName);
-    }
-    
-    private function createRatingsTable(): void 
-    {
-        $tableName = $this->wpdb->prefix . 'mlcg_ratings';
-        
-        $sql = "CREATE TABLE $tableName (
-            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-            image_id bigint(20) unsigned NOT NULL,
-            client_id bigint(20) unsigned NOT NULL,
-            rating enum('selected','rejected','favorite') NOT NULL,
-            comment text,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY unique_rating (image_id, client_id),
-            KEY image_id (image_id),
-            KEY client_id (client_id),
-            KEY rating (rating)
         ) $this->charset;";
         
         $this->executeSql($sql, $tableName);
@@ -198,9 +115,6 @@ class Installer
         $logger?->info('Database uninstallation started');
         
         $tables = [
-            $this->wpdb->prefix . 'mlcg_ratings',
-            $this->wpdb->prefix . 'mlcg_images', 
-            $this->wpdb->prefix . 'mlcg_galleries',
             $this->wpdb->prefix . 'mlcg_clients',
             $this->wpdb->prefix . 'mlcg_log_entries'
         ];
