@@ -396,24 +396,267 @@ final class MarkusLehrClientGallerie
 
     public function renderAdminPage(): void
     {
+        // Get galleries using CQRS
+        try {
+            $container = new \MarkusLehr\ClientGallerie\Infrastructure\Container\ServiceContainer();
+            $container->register();
+            $queryBus = $container->get(\MarkusLehr\ClientGallerie\Application\Bus\QueryBusInterface::class);
+            $listQuery = new \MarkusLehr\ClientGallerie\Application\Query\ListGalleriesQuery();
+            $galleries = $queryBus->execute($listQuery);
+        } catch (\Exception $e) {
+            $galleries = [];
+            $error = $e->getMessage();
+        }
+
         echo '<div class="wrap">';
-        echo '<h1>Client Gallery - All Galleries</h1>';
+        echo '<h1 class="wp-heading-inline">Client Gallery - All Galleries</h1>';
+        echo '<a href="' . admin_url('admin.php?page=markuslehr-clientgallery-new') . '" class="page-title-action">Add New Gallery</a>';
+        echo '<hr class="wp-header-end">';
+        
+        // Show success message
+        if (isset($_GET['message']) && $_GET['message'] === 'created') {
+            echo '<div class="notice notice-success is-dismissible"><p>Gallery created successfully!</p></div>';
+        }
+        
+        if (isset($error)) {
+            echo '<div class="notice notice-error"><p>Error loading galleries: ' . esc_html($error) . '</p></div>';
+        }
+
         echo '<div id="mlcg-admin-app">';
-        echo '<p><strong>Admin interface is working!</strong></p>';
-        echo '<p>This will be replaced with the full gallery management interface.</p>';
+        
+        if (empty($galleries)) {
+            echo '<div class="mlcg-empty-state">';
+            echo '<h2>No galleries found</h2>';
+            echo '<p>Create your first gallery to get started!</p>';
+            echo '<a href="' . admin_url('admin.php?page=markuslehr-clientgallery-new') . '" class="button button-primary">Create First Gallery</a>';
+            echo '</div>';
+        } else {
+            $this->renderGalleryTable($galleries);
+        }
+        
         echo '</div>';
         echo '</div>';
+        
+        // Add admin styles
+        echo '<style>
+        .mlcg-empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .mlcg-gallery-table {
+            margin-top: 20px;
+        }
+        .mlcg-status-badge {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .mlcg-status-published {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .mlcg-status-draft {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .mlcg-public-url {
+            font-family: monospace;
+            font-size: 11px;
+            color: #666;
+        }
+        </style>';
+    }
+
+    private function renderGalleryTable($galleries): void
+    {
+        echo '<table class="wp-list-table widefat fixed striped mlcg-gallery-table">';
+        echo '<thead>';
+        echo '<tr>';
+        echo '<th>Gallery Name</th>';
+        echo '<th>Status</th>';
+        echo '<th>Client ID</th>';
+        echo '<th>Created</th>';
+        echo '<th>Public URL</th>';
+        echo '<th>Actions</th>';
+        echo '</tr>';
+        echo '</thead>';
+        echo '<tbody>';
+        
+        foreach ($galleries as $gallery) {
+            $statusClass = $gallery->getStatus()->getValue() === 'published' ? 'mlcg-status-published' : 'mlcg-status-draft';
+            $publicUrl = home_url('/?ClientSelect_public_gallery=' . $gallery->getId());
+            
+            echo '<tr>';
+            echo '<td><strong>' . esc_html($gallery->getName()) . '</strong><br>';
+            echo '<small>' . esc_html($gallery->getDescription()) . '</small></td>';
+            echo '<td><span class="mlcg-status-badge ' . $statusClass . '">' . esc_html($gallery->getStatus()->getValue()) . '</span></td>';
+            echo '<td>' . esc_html($gallery->getClientId()) . '</td>';
+            echo '<td>' . esc_html($gallery->getCreatedAt()->format('Y-m-d H:i')) . '</td>';
+            echo '<td><code class="mlcg-public-url">' . esc_html($publicUrl) . '</code></td>';
+            echo '<td>';
+            echo '<a href="' . esc_url($publicUrl) . '" class="button button-small" target="_blank">View</a> ';
+            echo '<a href="#" class="button button-small" onclick="editGallery(' . $gallery->getId() . ')">Edit</a> ';
+            if ($gallery->getStatus()->getValue() === 'draft') {
+                echo '<a href="#" class="button button-small" onclick="publishGallery(' . $gallery->getId() . ')">Publish</a> ';
+            }
+            echo '<a href="#" class="button button-small button-link-delete" onclick="deleteGallery(' . $gallery->getId() . ')">Delete</a>';
+            echo '</td>';
+            echo '</tr>';
+        }
+        
+        echo '</tbody>';
+        echo '</table>';
+        
+        // Add JavaScript for actions
+        echo '<script>
+        function editGallery(id) {
+            alert("Edit functionality will be implemented next. Gallery ID: " + id);
+        }
+        
+        function publishGallery(id) {
+            if (confirm("Publish this gallery?")) {
+                // TODO: Implement AJAX call to publish gallery
+                alert("Publish functionality will be implemented next. Gallery ID: " + id);
+            }
+        }
+        
+        function deleteGallery(id) {
+            if (confirm("Are you sure you want to delete this gallery? This action cannot be undone.")) {
+                // TODO: Implement AJAX call to delete gallery
+                alert("Delete functionality will be implemented next. Gallery ID: " + id);
+            }
+        }
+        </script>';
     }
 
     public function renderNewGalleryPage(): void
     {
+        // Handle form submission
+        if ($_POST && isset($_POST['mlcg_create_gallery'])) {
+            $this->handleCreateGallery();
+        }
+
         echo '<div class="wrap">';
-        echo '<h1>Add New Gallery</h1>';
+        echo '<h1 class="wp-heading-inline">Add New Gallery</h1>';
+        echo '<a href="' . admin_url('admin.php?page=markuslehr-clientgallery') . '" class="page-title-action">← Back to Galleries</a>';
+        echo '<hr class="wp-header-end">';
+        
         echo '<div id="mlcg-new-gallery-app">';
-        echo '<p><strong>New gallery page is working!</strong></p>';
-        echo '<p>This will be replaced with the gallery creation form.</p>';
+        echo '<form method="post" action="" class="mlcg-gallery-form">';
+        
+        // Security nonce
+        wp_nonce_field('mlcg_create_gallery', 'mlcg_nonce');
+        
+        echo '<table class="form-table">';
+        echo '<tr>';
+        echo '<th scope="row"><label for="gallery_name">Gallery Name *</label></th>';
+        echo '<td><input type="text" id="gallery_name" name="gallery_name" class="regular-text" required /></td>';
+        echo '</tr>';
+        
+        echo '<tr>';
+        echo '<th scope="row"><label for="gallery_slug">Gallery Slug</label></th>';
+        echo '<td>';
+        echo '<input type="text" id="gallery_slug" name="gallery_slug" class="regular-text" />';
+        echo '<p class="description">Leave empty to auto-generate from gallery name</p>';
+        echo '</td>';
+        echo '</tr>';
+        
+        echo '<tr>';
+        echo '<th scope="row"><label for="gallery_description">Description</label></th>';
+        echo '<td><textarea id="gallery_description" name="gallery_description" rows="4" class="large-text"></textarea></td>';
+        echo '</tr>';
+        
+        echo '<tr>';
+        echo '<th scope="row"><label for="client_id">Client ID</label></th>';
+        echo '<td>';
+        echo '<input type="number" id="client_id" name="client_id" class="small-text" value="1" min="1" />';
+        echo '<p class="description">Client assignment for organization</p>';
+        echo '</td>';
+        echo '</tr>';
+        
+        echo '<tr>';
+        echo '<th scope="row"><label for="gallery_status">Status</label></th>';
+        echo '<td>';
+        echo '<select id="gallery_status" name="gallery_status">';
+        echo '<option value="draft">Draft</option>';
+        echo '<option value="published">Published</option>';
+        echo '</select>';
+        echo '</td>';
+        echo '</tr>';
+        echo '</table>';
+        
+        echo '<p class="submit">';
+        echo '<input type="submit" name="mlcg_create_gallery" class="button-primary" value="Create Gallery" />';
+        echo '</p>';
+        
+        echo '</form>';
         echo '</div>';
         echo '</div>';
+        
+        // Add auto-slug generation JavaScript
+        echo '<script>
+        document.getElementById("gallery_name").addEventListener("input", function() {
+            const name = this.value;
+            const slug = name.toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, "")
+                .replace(/\s+/g, "-")
+                .substring(0, 50);
+            document.getElementById("gallery_slug").value = slug;
+        });
+        </script>';
+    }
+
+    private function handleCreateGallery(): void
+    {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['mlcg_nonce'], 'mlcg_create_gallery')) {
+            wp_die('Security check failed');
+        }
+
+        // Sanitize input
+        $name = sanitize_text_field($_POST['gallery_name']);
+        $slug = sanitize_title($_POST['gallery_slug']) ?: sanitize_title($name);
+        $description = sanitize_textarea_field($_POST['gallery_description']);
+        $clientId = (int) $_POST['client_id'];
+        $status = in_array($_POST['gallery_status'], ['draft', 'published']) ? $_POST['gallery_status'] : 'draft';
+
+        try {
+            // Use CQRS to create gallery
+            $container = new \MarkusLehr\ClientGallerie\Infrastructure\Container\ServiceContainer();
+            $container->register();
+            $commandBus = $container->get(\MarkusLehr\ClientGallerie\Application\Bus\CommandBusInterface::class);
+            
+            $createCommand = new \MarkusLehr\ClientGallerie\Application\Command\CreateGalleryCommand(
+                $name,
+                $slug,
+                $clientId,
+                $description
+            );
+            
+            $gallery = $commandBus->execute($createCommand);
+            
+            // If status is published, publish it
+            if ($status === 'published') {
+                $publishCommand = new \MarkusLehr\ClientGallerie\Application\Command\PublishGalleryCommand(
+                    $gallery->getId(),
+                    new \MarkusLehr\ClientGallerie\Domain\Gallery\ValueObject\GalleryStatus('published')
+                );
+                $commandBus->execute($publishCommand);
+            }
+            
+            // Redirect to gallery list with success message
+            $redirectUrl = add_query_arg([
+                'page' => 'markuslehr-clientgallery',
+                'message' => 'created'
+            ], admin_url('admin.php'));
+            
+            wp_redirect($redirectUrl);
+            exit;
+            
+        } catch (\Exception $e) {
+            echo '<div class="notice notice-error"><p>Error creating gallery: ' . esc_html($e->getMessage()) . '</p></div>';
+        }
     }
 }
 
