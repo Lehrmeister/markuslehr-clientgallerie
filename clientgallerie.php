@@ -101,6 +101,7 @@ final class MarkusLehrClientGallerie
         // WordPress hooks
         add_action('init', [$this, 'init']);
         add_action('admin_init', [$this, 'adminInit']);
+        add_action('admin_menu', [$this, 'adminMenu']); // Direct admin menu hook
         add_action('wp_enqueue_scripts', [$this, 'enqueueScripts']);
         add_action('admin_enqueue_scripts', [$this, 'adminEnqueueScripts']);
         
@@ -184,6 +185,9 @@ final class MarkusLehrClientGallerie
         // Initialize main components
         $this->initializeComponents();
         
+        // Initialize frontend handler
+        $this->initializeFrontend();
+        
         $this->logger->debug('Plugin initialized for current request');
     }
     
@@ -191,9 +195,21 @@ final class MarkusLehrClientGallerie
     {
         // Admin-specific initialization
         if (is_admin()) {
-            // AdminController wird bereits in initializeHooks() erstellt
+            // Initialize gallery admin page
+            $galleryAdminPage = new \MarkusLehr\ClientGallerie\Infrastructure\WordPress\Admin\GalleryAdminPage();
+            $galleryAdminPage->init();
+            
             $this->logger->debug('Admin init completed');
         }
+    }
+
+    public function initializeFrontend(): void
+    {
+        // Initialize frontend gallery handler
+        $frontendHandler = new \MarkusLehr\ClientGallerie\Infrastructure\Frontend\FrontendGalleryHandler();
+        $frontendHandler->init();
+        
+        $this->logger->debug('Frontend handler initialized');
     }
     
     public function enqueueScripts(): void 
@@ -341,6 +357,63 @@ final class MarkusLehrClientGallerie
         $this->logger->debug('Database migrations registered', [
             'migration_status' => $migrationManager->getMigrationStatus()
         ]);
+    }
+    
+    public function adminMenu(): void
+    {
+        // Direct admin menu registration
+        add_menu_page(
+            'Client Gallery',                    // Page title
+            'Client Gallery',                    // Menu title
+            'manage_options',                    // Capability
+            'markuslehr-clientgallery',          // Menu slug
+            [$this, 'renderAdminPage'],         // Callback
+            'dashicons-format-gallery',          // Icon
+            30                                   // Position
+        );
+
+        // Add submenu pages
+        add_submenu_page(
+            'markuslehr-clientgallery',          // Parent slug
+            'All Galleries',                     // Page title
+            'All Galleries',                     // Menu title
+            'manage_options',                    // Capability
+            'markuslehr-clientgallery',          // Menu slug (same as parent for first item)
+            [$this, 'renderAdminPage']          // Callback
+        );
+
+        add_submenu_page(
+            'markuslehr-clientgallery',          // Parent slug
+            'Add New Gallery',                   // Page title
+            'Add New',                          // Menu title
+            'manage_options',                    // Capability
+            'markuslehr-clientgallery-new',     // Menu slug
+            [$this, 'renderNewGalleryPage']     // Callback
+        );
+
+        $this->logger?->debug('Admin menu registered directly in main plugin');
+    }
+
+    public function renderAdminPage(): void
+    {
+        echo '<div class="wrap">';
+        echo '<h1>Client Gallery - All Galleries</h1>';
+        echo '<div id="mlcg-admin-app">';
+        echo '<p><strong>Admin interface is working!</strong></p>';
+        echo '<p>This will be replaced with the full gallery management interface.</p>';
+        echo '</div>';
+        echo '</div>';
+    }
+
+    public function renderNewGalleryPage(): void
+    {
+        echo '<div class="wrap">';
+        echo '<h1>Add New Gallery</h1>';
+        echo '<div id="mlcg-new-gallery-app">';
+        echo '<p><strong>New gallery page is working!</strong></p>';
+        echo '<p>This will be replaced with the gallery creation form.</p>';
+        echo '</div>';
+        echo '</div>';
     }
 }
 

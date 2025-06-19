@@ -62,6 +62,12 @@ class ServiceContainer
         $this->singleton('log_entry_repository', function() {
             return new \MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\LogEntryRepository();
         });
+        
+        // Gallery Repository
+        $this->singleton(\MarkusLehr\ClientGallerie\Domain\Gallery\Repository\GalleryRepositoryInterface::class, function() {
+            global $wpdb;
+            return new \MarkusLehr\ClientGallerie\Infrastructure\Database\Repository\GalleryRepository($wpdb);
+        });
     }
     
     private function registerDomainServices(): void 
@@ -94,8 +100,71 @@ class ServiceContainer
     
     private function registerApplicationServices(): void 
     {
+        // Command Handlers
+        $this->singleton(\MarkusLehr\ClientGallerie\Application\Handler\CreateGalleryHandler::class, function() {
+            return new \MarkusLehr\ClientGallerie\Application\Handler\CreateGalleryHandler(
+                $this->get(\MarkusLehr\ClientGallerie\Domain\Gallery\Repository\GalleryRepositoryInterface::class)
+            );
+        });
+
+        $this->singleton(\MarkusLehr\ClientGallerie\Application\Handler\DeleteGalleryHandler::class, function() {
+            return new \MarkusLehr\ClientGallerie\Application\Handler\DeleteGalleryHandler(
+                $this->get(\MarkusLehr\ClientGallerie\Domain\Gallery\Repository\GalleryRepositoryInterface::class)
+            );
+        });
+
+        $this->singleton(\MarkusLehr\ClientGallerie\Application\Handler\UpdateGalleryHandler::class, function() {
+            return new \MarkusLehr\ClientGallerie\Application\Handler\UpdateGalleryHandler(
+                $this->get(\MarkusLehr\ClientGallerie\Domain\Gallery\Repository\GalleryRepositoryInterface::class)
+            );
+        });
+
+        $this->singleton(\MarkusLehr\ClientGallerie\Application\Handler\PublishGalleryHandler::class, function() {
+            return new \MarkusLehr\ClientGallerie\Application\Handler\PublishGalleryHandler(
+                $this->get(\MarkusLehr\ClientGallerie\Domain\Gallery\Repository\GalleryRepositoryInterface::class)
+            );
+        });
+
+        // Query Handlers
+        $this->singleton(\MarkusLehr\ClientGallerie\Application\Handler\GetGalleryQueryHandler::class, function() {
+            return new \MarkusLehr\ClientGallerie\Application\Handler\GetGalleryQueryHandler(
+                $this->get(\MarkusLehr\ClientGallerie\Domain\Gallery\Repository\GalleryRepositoryInterface::class)
+            );
+        });
+
+        $this->singleton(\MarkusLehr\ClientGallerie\Application\Handler\ListGalleriesQueryHandler::class, function() {
+            return new \MarkusLehr\ClientGallerie\Application\Handler\ListGalleriesQueryHandler(
+                $this->get(\MarkusLehr\ClientGallerie\Domain\Gallery\Repository\GalleryRepositoryInterface::class)
+            );
+        });
+
+        // Buses
+        $this->singleton(\MarkusLehr\ClientGallerie\Application\Bus\CommandBusInterface::class, function() {
+            return new \MarkusLehr\ClientGallerie\Infrastructure\Bus\SimpleCommandBus(
+                $this->get(\MarkusLehr\ClientGallerie\Application\Handler\CreateGalleryHandler::class),
+                $this->get(\MarkusLehr\ClientGallerie\Application\Handler\DeleteGalleryHandler::class),
+                $this->get(\MarkusLehr\ClientGallerie\Application\Handler\UpdateGalleryHandler::class),
+                $this->get(\MarkusLehr\ClientGallerie\Application\Handler\PublishGalleryHandler::class)
+            );
+        });
+
+        $this->singleton(\MarkusLehr\ClientGallerie\Application\Bus\QueryBusInterface::class, function() {
+            return new \MarkusLehr\ClientGallerie\Infrastructure\Bus\SimpleQueryBus(
+                $this->get(\MarkusLehr\ClientGallerie\Application\Handler\GetGalleryQueryHandler::class),
+                $this->get(\MarkusLehr\ClientGallerie\Application\Handler\ListGalleriesQueryHandler::class)
+            );
+        });
+
+        // Admin Controller
         $this->singleton('admin_controller', function() {
             return new \MarkusLehr\ClientGallerie\Application\Controller\AdminController();
+        });
+
+        $this->singleton(\MarkusLehr\ClientGallerie\Infrastructure\Admin\GalleryAdminController::class, function() {
+            return new \MarkusLehr\ClientGallerie\Infrastructure\Admin\GalleryAdminController(
+                $this->get(\MarkusLehr\ClientGallerie\Application\Bus\CommandBusInterface::class),
+                $this->get(\MarkusLehr\ClientGallerie\Application\Bus\QueryBusInterface::class)
+            );
         });
         
         // TODO: Implementiere diese Controller

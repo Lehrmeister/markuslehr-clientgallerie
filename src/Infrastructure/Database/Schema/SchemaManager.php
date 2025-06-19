@@ -28,9 +28,24 @@ class SchemaManager
     private function registerSchemas(): void 
     {
         $this->schemas = [
-            'clients' => new ClientSchema(),
-            'log_entries' => new LogEntrySchema(),
+            'galleries' => new GallerySchema(),
+            // Weitere Schemas werden nach Implementierung hinzugefügt
+            // 'clients' => new ClientSchema(),
+            // 'images' => new ImageSchema(),
+            // 'ratings' => new RatingSchema(),
+            // 'log_entries' => new LogEntrySchema(),
         ];
+    }
+    
+    /**
+     * Registriert ein Schema dynamisch
+     */
+    public function registerSchema(BaseSchema $schema): void
+    {
+        global $wpdb;
+        $tableName = $schema->getTableName();
+        $schemaKey = str_replace([$wpdb->prefix, 'ml_clientgallerie_'], '', $tableName);
+        $this->schemas[$schemaKey] = $schema;
     }
     
     /**
@@ -40,6 +55,9 @@ class SchemaManager
     {
         $this->dependencies = [
             'clients' => [],
+            'galleries' => ['clients'], // Galleries depend on clients
+            'images' => ['galleries'], // Images depend on galleries
+            'ratings' => ['images'], // Ratings depend on images
             'log_entries' => [],
         ];
     }
@@ -47,17 +65,23 @@ class SchemaManager
     /**
      * Installiert alle Schemas in der richtigen Reihenfolge
      */
-    public function installAll(): bool 
+    public function installAll(): array 
     {
         $logger = LoggerRegistry::getLogger();
         $logger?->info('Starting database schema installation');
         
         $installOrder = $this->getInstallationOrder();
         $success = true;
+        $errors = [];
+        $installed = [];
         
         foreach ($installOrder as $schemaName) {
-            if (!$this->installSchema($schemaName)) {
+            $result = $this->installSchema($schemaName);
+            if ($result) {
+                $installed[] = $schemaName;
+            } else {
                 $success = false;
+                $errors[] = "Failed to install schema: $schemaName";
                 break;
             }
         }
@@ -69,7 +93,11 @@ class SchemaManager
             $logger?->error('Database schema installation failed');
         }
         
-        return $success;
+        return [
+            'success' => $success,
+            'installed' => $installed,
+            'errors' => $errors
+        ];
     }
     
     /**
@@ -366,5 +394,13 @@ class SchemaManager
     public function getSchema(string $name): ?BaseSchema 
     {
         return $this->schemas[$name] ?? null;
+    }
+    
+    /**
+     * Gibt die Liste der registrierten Schemas zurück
+     */
+    public function getRegisteredSchemas(): array
+    {
+        return array_keys($this->schemas);
     }
 }

@@ -1,0 +1,212 @@
+/**
+ * Gallery Admin Styles
+ * 
+ * Styles for the gallery management admin interface
+ * 
+ * @package MarkusLehr ClientGallerie
+ * @author Markus Lehr
+ * @since 1.0.0
+ */
+
+/* ==========================================================================
+   Gallery Form Styles
+   ========================================================================== */
+
+.mlcg-gallery-form-container {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.mlcg-gallery-form-container h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.mlcg-gallery-form .spinner {
+    float: none;
+    margin-left: 10px;
+}
+
+/* ==========================================================================
+   Gallery List Styles
+   ========================================================================== */
+
+.mlcg-galleries-list {
+    margin-top: 30px;
+}
+
+.mlcg-galleries-list h2 {
+    margin-bottom: 15px;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.status-draft {
+    background-color: #f0f0f1;
+    color: #646970;
+}
+
+.status-badge.status-published {
+    background-color: #00a32a;
+    color: #fff;
+}
+
+.status-badge.status-archived {
+    background-color: #dba617;
+    color: #fff;
+}
+
+/* Gallery actions */
+.gallery-actions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.gallery-actions .button {
+    margin: 0;
+    font-size: 12px;
+    height: auto;
+    line-height: 1.4;
+    padding: 4px 8px;
+}
+
+/* ==========================================================================
+   Modal Styles
+   ========================================================================== */
+
+#mlcg-edit-gallery-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mlcg-modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.mlcg-modal-content h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+    .gallery-actions {
+        flex-direction: column;
+    }
+    
+    .gallery-actions .button {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .mlcg-modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+}
+
+/* ==========================================================================
+   WordPress Admin Integration
+   ========================================================================== */
+
+/* Ensure our styles work well with WordPress admin */
+.mlcg-gallery-form table.form-table th {
+    padding-left: 0;
+}
+
+.mlcg-gallery-form table.form-table td {
+    padding-left: 0;
+}
+
+/* Custom notice styles */
+.notice.notice-success {
+    border-left-color: #00a32a;
+}
+
+.notice.notice-error {
+    border-left-color: #d63638;
+}
+
+/* Loading states */
+.mlcg-gallery-form .spinner.is-active {
+    visibility: visible;
+}
+
+/* Form validation styles */
+.mlcg-gallery-form input:required:invalid {
+    border-color: #d63638;
+}
+
+.mlcg-gallery-form input:required:valid {
+    border-color: #00a32a;
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+.mlcg-text-center {
+    text-align: center;
+}
+
+.mlcg-mb-20 {
+    margin-bottom: 20px;
+}
+
+.mlcg-mt-20 {
+    margin-top: 20px;
+}
+
+.mlcg-hidden {
+    display: none;
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    #mlcg-edit-gallery-modal,
+    .gallery-actions,
+    .mlcg-gallery-form-container {
+        display: none;
+    }
+}
