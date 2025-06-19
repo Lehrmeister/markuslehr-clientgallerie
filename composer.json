@@ -1,0 +1,118 @@
+{
+    "name": "markuslehr/clientgallerie",
+    "description": "Professional WordPress Gallery Plugin with modern architecture",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Markus Lehr",
+            "email": "mail@markuslehr.com",
+            "homepage": "https://markuslehr.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.0",
+        "ext-json": "*",
+        "ext-gd": "*",
+        "ext-mysqli": "*"
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "psr-4": {
+            "MarkusLehr\\ClientGallerie\\": "src/"
+        },
+        "files": [
+            "src/Infrastructure/Logging/LoggerRegistry.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MarkusLehr\\ClientGallerie\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "analyze": "phpstan analyze",
+        "analyze:psalm": "psalm",
+        "analyze:code-quality": "php scripts/smart-code-analyzer.php",
+        "analyze:dependencies": "php scripts/analyze-dependencies.php",
+        "analyze:structure": "bash scripts/analyze-structure.sh",
+        "analyze:all": "@analyze && @analyze:psalm && @analyze:code-quality && @analyze:dependencies",
+        "test": "phpunit",
+        "test:unit": "phpunit --testsuite=unit",
+        "test:integration": "phpunit --testsuite=integration",
+        "test:coverage": "phpunit --coverage-html=docs/coverage",
+        "cs": "phpcs",
+        "cbf": "phpcbf",
+        "md": "phpmd src text cleancode,codesize,controversial,design,naming,unusedcode",
+        "cpd": "phpcpd src --exclude=tests",
+        "quality:validate": "@cs && @analyze && @test",
+        "validate:structure": "php scripts/validate-file-structure.php .",
+        "find:dead-code": "php scripts/find-dead-code.php .",
+        "find:duplicates": "phpcpd src",
+        "check:responsibility": "php scripts/smart-code-analyzer.php . --focus=responsibility", 
+        "check:coupling": "php scripts/smart-code-analyzer.php . --focus=coupling",
+        "check:cohesion": "php scripts/smart-code-analyzer.php . --focus=cohesion",
+        "find:orphaned": "php scripts/find-dead-code.php . --type=orphaned",
+        "quality:check": "@cs && @analyze && @md && @cpd && @check:responsibility",
+        "quality:report": "php scripts/generate-quality-report.php",
+        "quality:full": "@validate:structure && @find:dead-code && @check:responsibility && @check:coupling",
+        "setup:hooks": "cp scripts/git-hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
+        "post-install-cmd": [
+            "@setup:hooks"
+        ],
+        "post-update-cmd": [
+            "@setup:hooks"
+        ]
+    },
+    "scripts-descriptions": {
+        "analyze": "Run PHPStan static analysis",
+        "analyze:psalm": "Run Psalm static analysis",
+        "analyze:code-quality": "Run custom code quality analyzer",
+        "analyze:dependencies": "Analyze PHP dependencies",
+        "analyze:structure": "Analyze complete code structure",
+        "analyze:all": "Run all analysis tools",
+        "test": "Run all tests",
+        "test:unit": "Run unit tests only",
+        "test:integration": "Run integration tests only",
+        "test:coverage": "Generate test coverage report",
+        "cs": "Check coding standards",
+        "cbf": "Fix coding standards automatically",
+        "md": "Check for code mess detection",
+        "cpd": "Check for copy-paste duplications",
+        "validate": "Run complete validation (CS + Analysis + Tests)",
+        "validate:structure": "Validate file structure and naming",
+        "find:dead-code": "Find unused/dead code",
+        "find:duplicates": "Find duplicate code",
+        "quality:check": "Run all quality checks",
+        "quality:report": "Generate comprehensive quality report"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "classmap-authoritative": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "extra": {
+        "wordpress-install-dir": "vendor/wordpress/wordpress",
+        "installer-paths": {
+            "vendor/wordpress/wordpress/wp-content/mu-plugins/{$name}/": [
+                "type:wordpress-muplugin"
+            ],
+            "vendor/wordpress/wordpress/wp-content/plugins/{$name}/": [
+                "type:wordpress-plugin"
+            ],
+            "vendor/wordpress/wordpress/wp-content/themes/{$name}/": [
+                "type:wordpress-theme"
+            ]
+        }
+    },
+    "suggest": {
+        "ext-imagick": "For advanced image processing capabilities",
+        "ext-redis": "For high-performance caching",
+        "ext-memcached": "Alternative caching backend"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
